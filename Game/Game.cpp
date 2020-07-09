@@ -15,6 +15,8 @@ nc::Actor enemy;
 
 nc::Transform transform{ {400, 300}, 4 };
 
+float t{ 0 };
+
 float frametime;
 float roundTime{ 0 };
 bool gameOver{ false };
@@ -32,12 +34,14 @@ bool Update(float dt)
 	deltaTime = time - prevTime;
 	prevTime = time;
 
+	t = t + dt;
+
 	frametime = dt;
 	roundTime += dt;
 
-	if (roundTime >= 5.0f) gameOver = true;
+	if (roundTime >= 30.0f) gameOver = true;
 
-	if(gameOver) dt = dt * 0.1f;
+	if(gameOver) dt = dt * 0.25f;
 
 	bool quit = Core::Input::IsPressed(Core::Input::KEY_ESCAPE);
 
@@ -54,8 +58,13 @@ bool Update(float dt)
 	direction = nc::Vector2::Rotate(direction, player.GetTransform().angle);
 	player.GetTransform().position += direction;
 
-	if (Core::Input::IsPressed('A')) { player.GetTransform().angle = player.GetTransform().angle - (dt * 3.0f); }
-	if (Core::Input::IsPressed('D')) { player.GetTransform().angle = player.GetTransform().angle + (dt * 3.0f); }
+	if (Core::Input::IsPressed('A')) { player.GetTransform().angle = player.GetTransform().angle - (dt * nc::DegreesToRadians(240.0f)); }
+	if (Core::Input::IsPressed('D')) { player.GetTransform().angle = player.GetTransform().angle + (dt * nc::DegreesToRadians(240.0f)); }
+
+	player.GetTransform().position = nc::Clamp(player.GetTransform().position, { 10,10 }, { 790, 590 });
+
+	//player.GetTransform().position.x = nc::Clamp(player.GetTransform().position.x, 10.0f, 790.0f);
+	//player.GetTransform().position.y = nc::Clamp(player.GetTransform().position.y, 10.0f, 590.0f);
 
 	//if (Core::Input::IsPressed('A')) { position += nc::Vector2::left * speed * dt; }
 	//if (Core::Input::IsPressed('D')) { position += nc::Vector2::right * speed * dt; }
@@ -70,6 +79,14 @@ void Draw(Core::Graphics& graphics)
 	graphics.DrawString(10, 10, std::to_string(frametime).c_str());
 	graphics.DrawString(10, 20, std::to_string(1.0f / frametime).c_str());
 	graphics.DrawString(10, 30, std::to_string(deltaTime / 1000.0f).c_str());
+
+	float v = (std::sin(t) + 1.0f) * 0.5f;
+
+	nc::Color c = nc::Lerp(nc::Color{ 1, 0, 0}, nc::Color{ 1, 0, 1 }, v);
+	graphics.SetColor(c);	
+
+	nc::Vector2 p = nc::Lerp(nc::Vector2{ 300, 100 }, nc::Vector2{ 200, 150 }, v);
+	graphics.DrawString(p.x, p.y, "Never Bring a Gun to a Knife Fight!");
 
 	if (gameOver) graphics.DrawString(400, 300, "Game Over");
 
