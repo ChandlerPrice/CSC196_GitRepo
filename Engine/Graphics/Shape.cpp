@@ -1,5 +1,6 @@
 #include "pch.h"
 #include "Shape.h"
+#include "Math/Matrix22.h"
 #include "Math/Vector2.h"
 #include <fstream>
 #include <string>
@@ -15,21 +16,33 @@ namespace nc
 		{
 			sucess = true;
 
+			//get color
 			stream >> m_color;
 
-			//read points
-			while (!stream.eof())
-			{
-				Vector2 point;
-				stream >> point;
+			//get num of points
+			std::string line;
+			std::getline(stream, line);
+			size_t size;
+			size = stoi(line);
 
-				if (!stream.eof())
-				{
-					m_points.push_back(point);
-				}
+			//read points
+			for (size_t i = 0; i < size; i++)
+			{
+				Vector2 v;
+				stream >> v;
+				m_points.push_back(v);
 			}
 
 			stream.close();
+		}
+
+		// get radius
+		m_radius = 0;
+		for (size_t i = 0; i < m_points.size(); i++)
+		{
+			nc::Vector2 p1 = m_points[i];
+			float length = p1.Length();
+			if (length > m_radius) m_radius = length;
 		}
 
 		return sucess;
@@ -39,22 +52,25 @@ namespace nc
 	{
 		graphics.SetColor(this->GetColor());
 
+		nc::Matrix33 mxs;
+		mxs.Scale(scale);
+
+		nc::Matrix33 mxr;
+		mxr.Rotate(angle);
+
+		nc::Matrix33 mxt;
+		mxt.Translate(position);
+
+		nc::Matrix33 mx = mxs * mxr * mxt;
+
 		for (size_t i = 0; i < this->m_points.size() - 1; i++)
 		{
 			nc::Vector2 p1 = this->m_points[i];
 			nc::Vector2 p2 = this->m_points[i + 1];
 
 			//Transform
-			p1 = p1 * scale;
-			p2 = p2 * scale;
-
-			//Rotate
-			p1 = nc::Vector2::Rotate(p1, angle);
-			p2 = nc::Vector2::Rotate(p2, angle);
-
-			//Translate
-			p1 = p1 + position;
-			p2 = p2 + position;
+			p1 = p1 * mx;
+			p2 = p2 * mx;
 
 			graphics.DrawLine(p1.x, p1.y, p2.x, p2.y);
 		}
@@ -62,6 +78,18 @@ namespace nc
 
 	void Shape::Draw(Core::Graphics& graphics, const Transform& transorm)
 	{
-		Draw(graphics, transorm.position, transorm.scale, transorm.angle);
+		graphics.SetColor(this->GetColor());
+
+		for (size_t i = 0; i < this->m_points.size() - 1; i++)
+		{
+			nc::Vector2 p1 = this->m_points[i];
+			nc::Vector2 p2 = this->m_points[i + 1];
+
+			//Transform
+			p1 = p1 * transorm.matrix;
+			p2 = p2 * transorm.matrix;
+
+			graphics.DrawLine(p1.x, p1.y, p2.x, p2.y);
+		}
 	}
 }

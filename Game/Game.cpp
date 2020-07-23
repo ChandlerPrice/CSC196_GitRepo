@@ -5,109 +5,90 @@
 #include "Math/Transform.h"
 #include "Graphics/Shape.h"
 #include "Object/Actor.h"
+#include "Actors/Enemy.h"
+#include "Actors/Player.h"
+#include "Object/Scene.h"
+#include "Graphics/ParticleSystem.h"
 #include <iostream>
 #include <string>
+#include <list>
 
-float speed = 300.0f;
-
-nc::Actor player;
-nc::Actor enemy;
-
-nc::Transform transform{ {400, 300}, 4 };
-
-float t{ 0 };
+nc::Scene scene;
 
 float frametime;
-float roundTime{ 0 };
-bool gameOver{ false };
-
-DWORD prevTime;
-DWORD deltaTime;
-
-std::string playerFileName = "Player.txt";
-std::string enemyFileName = "Enemy.txt";
+float spawnTime = 0;
 
 bool Update(float dt)
 {
-
-	DWORD time = GetTickCount();
-	deltaTime = time - prevTime;
-	prevTime = time;
-
-	t = t + dt;
-
 	frametime = dt;
-	roundTime += dt;
-
-	if (roundTime >= 30.0f) gameOver = true;
-
-	if(gameOver) dt = dt * 0.25f;
 
 	bool quit = Core::Input::IsPressed(Core::Input::KEY_ESCAPE);
 
-	int x, y;
-	Core::Input::GetMousePos(x, y);
+	spawnTime += dt;
+	if (spawnTime >= 3.0f)
+	{
+		spawnTime = 0.0f;
 
-	//nc::Vector2 target = nc::Vector2{ x, y };
-	//nc::Vector2 direction = target - position;
-	//direction.Normalize();
-	
-	nc::Vector2 force;
-	if (Core::Input::IsPressed('W')) { force = nc::Vector2::forward * (dt * speed); }
-	nc::Vector2 direction = force;
-	direction = nc::Vector2::Rotate(direction, player.GetTransform().angle);
-	player.GetTransform().position += direction;
+		Enemy* enemy = new Enemy;
+		enemy->Load("Enemy.txt");
+		enemy->SetTarget(scene.GetActor<Player>());
+		enemy->GetTransform().position = nc::Vector2{ nc::random(0, 800), nc::random(0, 600) };
+		scene.AddActor(enemy);
+	}
 
-	if (Core::Input::IsPressed('A')) { player.GetTransform().angle = player.GetTransform().angle - (dt * nc::DegreesToRadians(240.0f)); }
-	if (Core::Input::IsPressed('D')) { player.GetTransform().angle = player.GetTransform().angle + (dt * nc::DegreesToRadians(240.0f)); }
+	if (Core::Input::IsPressed(Core::Input::BUTTON_LEFT))
+	{
+		int x, y;
+		Core::Input::GetMousePos(x, y);
 
-	player.GetTransform().position = nc::Clamp(player.GetTransform().position, { 10,10 }, { 790, 590 });
+		nc::Color colors[] = { nc::Color::red, nc::Color::green, nc::Color::blue };
+		nc::Color color = colors[rand() % 3];
 
-	//player.GetTransform().position.x = nc::Clamp(player.GetTransform().position.x, 10.0f, 790.0f);
-	//player.GetTransform().position.y = nc::Clamp(player.GetTransform().position.y, 10.0f, 590.0f);
+		g_particleSystem.Create({ x,y }, 0, 180, 30, color, 1, 100, 200);
+	}
 
-	//if (Core::Input::IsPressed('A')) { position += nc::Vector2::left * speed * dt; }
-	//if (Core::Input::IsPressed('D')) { position += nc::Vector2::right * speed * dt; }
-	//if (Core::Input::IsPressed('W')) { position += nc::Vector2::up * speed * dt; }
-	//if (Core::Input::IsPressed('S')) { position += nc::Vector2::down * speed * dt; }
+	g_particleSystem.Update(dt);
+	scene.Update(dt);
 
 	return quit;
 }
 
 void Draw(Core::Graphics& graphics)
 {
+	graphics.SetColor(nc::Color{ 0, 1, 0 });
 	graphics.DrawString(10, 10, std::to_string(frametime).c_str());
 	graphics.DrawString(10, 20, std::to_string(1.0f / frametime).c_str());
-	graphics.DrawString(10, 30, std::to_string(deltaTime / 1000.0f).c_str());
 
-	float v = (std::sin(t) + 1.0f) * 0.5f;
-
-	nc::Color c = nc::Lerp(nc::Color{ 1, 0, 0}, nc::Color{ 1, 0, 1 }, v);
-	graphics.SetColor(c);	
-
-	nc::Vector2 p = nc::Lerp(nc::Vector2{ 300, 100 }, nc::Vector2{ 200, 150 }, v);
-	graphics.DrawString(p.x, p.y, "Never Bring a Gun to a Knife Fight!");
-
-	if (gameOver) graphics.DrawString(400, 300, "Game Over");
-
-	enemy.Draw(graphics);
-	player.Draw(graphics);
+	g_particleSystem.Draw(graphics);
+	scene.Draw(graphics);
 }
 
 int main()
 {
-	DWORD ticks = GetTickCount(); //how many ticks in a sec
-	std::cout << ticks / 1000 / 60 / 60 << std::endl;
-	prevTime = GetTickCount();
+	scene.Startup();
+	g_particleSystem.Startup();
 
-	player.Load(playerFileName);
-	enemy.Load(enemyFileName);
+	Player* player = new Player;
+	player->Load("Player.txt");
+	scene.AddActor(player);
+
+	for (size_t i = 0; i < 1; i++)
+	{
+		Enemy* enemy = new Enemy;
+		enemy->Load("Enemy.txt");
+		enemy->SetTarget(scene.GetActor<Player>());
+		enemy->GetTransform().position = nc::Vector2{ nc::random(0, 800), nc::random(0, 600) };
+		scene.AddActor(enemy);
+	}
 
 	char name[] = "CSC196";
-	Core::Init(name, 800, 600);
+	Core::Init(name, 800, 600, 90);
 	Core::RegisterUpdateFn(Update);
 	Core::RegisterDrawFn(Draw);
 
 	Core::GameLoop();
 	Core::Shutdown();
+
+	scene.Shutdown();
+	g_particleSystem.Shutdown();
 }
