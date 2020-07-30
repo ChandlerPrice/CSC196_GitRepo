@@ -14,9 +14,6 @@
     </Filter>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="Game.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="Actors\Player.cpp">
       <Filter>Actors</Filter>
     </ClCompile>
@@ -24,6 +21,15 @@
       <Filter>Actors</Filter>
     </ClCompile>
     <ClCompile Include="Actors\Projectile.cpp">
+      <Filter>Actors</Filter>
+    </ClCompile>
+    <ClCompile Include="Main.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="Game.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="Actors\Powerup.cpp">
       <Filter>Actors</Filter>
     </ClCompile>
   </ItemGroup>
@@ -35,6 +41,12 @@
       <Filter>Actors</Filter>
     </ClInclude>
     <ClInclude Include="Actors\Projectile.h">
+      <Filter>Actors</Filter>
+    </ClInclude>
+    <ClInclude Include="Game.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Actors\Powerup.h">
       <Filter>Actors</Filter>
     </ClInclude>
   </ItemGroup>

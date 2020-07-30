@@ -5,15 +5,12 @@ namespace nc
 {
 	void nc::Scene::Startup()
 	{
+		m_dtMultiplier = 1;
 	}
 
 	void nc::Scene::Shutdown()
 	{
-		for (Actor* actor : m_actors)
-		{
-			delete actor;
-		}
-		m_actors.clear();
+		RemoveAllActor();
 	}
 
 	void nc::Scene::Update(float dt)
@@ -50,7 +47,14 @@ namespace nc
 
 		for (nc::Actor* actor : m_actors)
 		{
-			actor->Update(dt);
+			if (actor->GetType() != Actor::eType::PLAYER)
+			{
+				actor->Update(dt * m_dtMultiplier);
+			}
+			else
+			{
+				actor->Update(dt);
+			}
 		}
 	}
 
@@ -75,6 +79,26 @@ namespace nc
 		{
 			delete* iter;
 			m_actors.erase(iter);
+		}
+	}
+
+	void Scene::RemoveAllActor()
+	{
+		for (Actor* actor : m_actors)
+		{
+			delete actor;
+		}
+		m_actors.clear();
+	}
+
+	void Scene::RemoveAllActorOfType(Actor::eType eType)
+	{
+		for (Actor* actor : m_actors)
+		{
+			if (actor->GetType() == eType && !actor->IsDestroy())
+			{
+				actor->SetDestroy();
+			}	
 		}
 	}
 }

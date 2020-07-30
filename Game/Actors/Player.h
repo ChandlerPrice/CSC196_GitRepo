@@ -14,11 +14,16 @@ public:
 
 	virtual void OnCollision(Actor* actor);
 
+	void GivePowerup(Actor* actor);
+	void RemovePowerup(Player* player, float dt);
+	int GetIsPowerup() { return m_powerupType; }
+
 protected:
 	nc::Vector2 m_velocity{ 0,0 };
 	float m_thrust{ 150 };
 	float m_fireRate{ 0.25f };
 	float m_fireTimer{ 0.0f };
 	float m_rotateRate{ 90 };
-	bool isDead{ false };
+	float m_powerupLifetime{ 3 };
+	int m_powerupType{ 0 };
 };

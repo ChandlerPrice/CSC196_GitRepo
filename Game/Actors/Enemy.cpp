@@ -2,7 +2,10 @@
 #include "Projectile.h"
 #include "Object/Scene.h"
 #include "Graphics/ParticleSystem.h"
+#include "Audio/AudioSystem.h"
+#include "../Game.h"
 #include <fstream>
+#include "Powerup.h"
 
 bool Enemy::Load(const std::string& filename)
 {
@@ -34,6 +37,7 @@ void Enemy::Update(float dt)
 		projectile->Load("Projectile.txt");
 		projectile->GetTransform().position = m_transform.position;
 		projectile->GetTransform().angle = m_transform.angle - 29.85f;
+		g_audioSystem.PlayAudio("Shoot");
 		m_scene->AddActor(projectile);
 	}
 
@@ -52,9 +56,19 @@ void Enemy::OnCollision(Actor* actor)
 		m_destroy = true;
 		//m_scene->RemoveActor(actor);
 
+		m_scene->GetGame()->AddPoints(100);
+
 		nc::Color colors[] = { nc::Color::red, nc::Color::green, nc::Color::red };
 		nc::Color color = colors[rand() % 3];
 
+		g_audioSystem.PlayAudio("Explosion");
 		g_particleSystem.Create(m_transform.position, 0, 180, 30, color, 1, 100, 200);
+
+
+		Powerup* powerup = new Powerup;
+		powerup->Load(powerup->SetRandomPowerup());
+		powerup->GetTransform().position = m_transform.position - rand() % 1000;
+		powerup->GetTransform().angle = m_transform.angle;
+		m_scene->AddActor(powerup);
 	}
 }

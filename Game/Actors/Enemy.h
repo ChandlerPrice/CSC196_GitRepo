@@ -13,6 +13,7 @@ public:
 	virtual void Update(float dt) override;
 
 	void SetThrust(float thrust) { m_thrust = thrust; }
+	void SetFireRate(float fireRate) { m_fireRate = fireRate; }
 	void SetTarget(Actor* actor) { m_target = actor; }
 
 	virtual void OnCollision(Actor* actor);
